@@ -1,43 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import logo from '../assets/logo.svg';
 import '../styles/ui.css';
 
+const EXPORT_TYPES = {
+  DEFAULT: 'default',
+  BLOCK: 'block',
+};
+
 function App() {
-  const textbox = React.useRef<HTMLInputElement>(undefined);
+  const [exportType, setExportType] = useState(EXPORT_TYPES.DEFAULT);
 
-  const countRef = React.useCallback((element: HTMLInputElement) => {
-    if (element) element.value = '5';
-    textbox.current = element;
-  }, []);
-
-  const onCreate = () => {
-    const count = parseInt(textbox.current.value, 10);
-    parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*');
+  const onExport = (type: string) => {
+    parent.postMessage({ pluginMessage: { type: `export-${type}` } }, '*');
+    console.log(type);
   };
 
   const onCancel = () => {
     parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
   };
 
-  React.useEffect(() => {
-    // This is how we read messages sent from the plugin controller
-    window.onmessage = (event) => {
-      const { type, message } = event.data.pluginMessage;
-      if (type === 'create-rectangles') {
-        console.log(`Figma Says: ${message}`);
-      }
-    };
-  }, []);
+  console.log(exportType);
 
   return (
     <div>
       <img src={logo} />
-      <h2>Rectangle Creator</h2>
-      <p>
-        Count: <input ref={countRef} />
-      </p>
-      <button id="create" onClick={onCreate}>
-        Create
+      <h2>Figma Franklin Exporter</h2>
+      <div>
+        <input
+          id="radio1"
+          type="radio"
+          name="exportType"
+          value={EXPORT_TYPES.DEFAULT}
+          checked={exportType === EXPORT_TYPES.DEFAULT}
+          onChange={(e) => setExportType(e.currentTarget.value)}
+        />
+        <label htmlFor="radio1">Default Content</label>
+        <input
+          id="radio2"
+          type="radio"
+          name="exportType"
+          value={EXPORT_TYPES.BLOCK}
+          checked={exportType === EXPORT_TYPES.BLOCK}
+          onChange={(e) => setExportType(e.currentTarget.value)}
+        />
+        <label htmlFor="radio2">Block</label>
+      </div>
+      <button id="export" onClick={() => onExport(exportType)}>
+        Export
       </button>
       <button onClick={onCancel}>Cancel</button>
     </div>
